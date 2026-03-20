@@ -1,0 +1,58 @@
+---
+description: Flower shop business logic rules
+alwaysApply: true
+---
+
+# Flower Business Domain
+
+## Inventory — FIFO (First In, First Out)
+- Inventory uses FIFO for perishable goods
+- Each flower batch has: arrival_date, supplier, expiry_date, quantity, unit_price
+- When deducting stock, always select batches ordered by arrival_date ASC (oldest first)
+- If oldest batch has insufficient quantity, take what's available and move to next batch
+- Deduction must be atomic (transaction.atomic) — no partial deductions on failure
+- Track deduction history: which batch, how many units, for which order
+
+## Bouquet = Recipe (Tech Card)
+- BouquetRecipe = recipe (tech card): list of components with quantities
+- BouquetComponent links flower to recipe with quantity and unit
+- When assembling bouquet, auto-deduct components from inventory using FIFO
+- selling_price = (sum of component costs + labor_cost + packaging) × (1 + margin_percent / 100)
+- Recalculate selling_price when component prices change
+
+## Order Lifecycle
+- Order statuses: new → paid → assembling → assembled → delivering → delivered → completed
+- Status transitions are strict — no skipping steps
+- Each status change triggers notification (customer + staff) via Celery
+- Each status change logged in OrderStatusLog with timestamp, user, old_status, new_status
+- Order can also be: cancelled, refunded (from any status before delivered)
+
+## Delivery
+- Delivery has time slots (e.g., 09:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00)
+- Delivery zones with different pricing based on geography
+- Courier assignment considers: zone, shift schedule, current load
+- Photo confirmation required on delivery (photo_before_delivery field)
+
+## Customer Card
+- Customer identified primarily by phone number
+- Track: allergies, preferred flowers, preferred color palette, memorable dates
+- memorable_dates: JSON array of {date, description, reminder_days_before}
+- Automatic trigger: send reminder N days before memorable date
+- Segment: VIP, regular, new, churned (based on order frequency and recency)
+
+## Expiry Alerts
+- "Hot flowers" alert when expiry_date < today + 2 days
+- Daily Celery task scans all batches and generates alerts
+- Alert appears on dashboard and as push notification to manager
+
+## Write-offs
+- Write-offs require reason: wilted, damaged, defective, expired, other
+- Write-off reduces batch quantity
+- All write-offs tracked for loss analytics
+- Monthly write-off report auto-generated
+
+## Pricing Rules
+- Prices can vary by delivery zone
+- Holiday surcharge (configurable dates and percentages)
+- Bonus program: cashback percentage on order total → added to customer bonus_balance
+- Bonus can be used as partial payment (configurable max percentage)

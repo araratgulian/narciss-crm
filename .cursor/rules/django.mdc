@@ -1,0 +1,61 @@
+---
+description: Django project conventions for Narciss CRM
+alwaysApply: true
+---
+
+# Django Conventions
+
+## Project Structure
+- Use class-based views (CBV) for CRUD, function-based for complex logic
+- All models in separate files: models/order.py, models/customer.py
+- Use Django REST Framework for all API endpoints
+- Write type hints for all function signatures
+- Every model must have `__str__`, `Meta.ordering`, `verbose_name`
+
+## Database
+- Use select_related/prefetch_related to avoid N+1 queries
+- Use django-filter for queryset filtering
+- Prefer `F()` expressions over Python-side calculations
+- Use `transaction.atomic()` for multi-model writes
+- Index fields used in WHERE/ORDER BY clauses
+
+## Models
+- CharField max_length must be explicitly set
+- Use `choices` for status fields (TextChoices enum)
+- DateTimeField: use `auto_now_add` for created, `auto_now` for updated
+- JSON fields: use `default=dict` not `default={}`
+- ForeignKey: always set `on_delete` and `related_name`
+- Decimal for money, never Float
+
+## API (DRF)
+- Use ModelViewSet + DefaultRouter
+- Serializer per use case: ListSerializer (light), DetailSerializer (full)
+- Pagination: CursorPagination for large datasets
+- Permission classes per view
+- Throttle rates for public endpoints
+
+## Internationalization
+- All text strings through `django.utils.translation` (gettext_lazy as _)
+- Template strings via `{% trans %}` and `{% blocktrans %}`
+- Default language: Russian (ru)
+- Support: Armenian (hy), English (en)
+
+## Async & Background Tasks
+- Celery for background tasks (email, notifications, reports)
+- Redis as broker and result backend
+- Django Channels + WebSocket for real-time updates
+- Task retry with exponential backoff
+
+## Security
+- CSRF protection on all forms
+- Django security middleware enabled
+- Sanitize user input, especially in JSON fields
+- Rate limiting on authentication endpoints
+- Never expose internal IDs in public URLs (use UUID or slug)
+
+## Code Style
+- ruff for linting, black for formatting
+- Line length: 88 (black default)
+- Import order: stdlib → django → third-party → local (isort)
+- No wildcard imports
+- Docstrings: Google style

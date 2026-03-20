@@ -1,0 +1,58 @@
+---
+description: Testing conventions for Narciss CRM
+globs: ["tests/**", "**/tests/**", "**/test_*.py"]
+alwaysApply: false
+---
+
+# Testing Conventions
+
+## Framework
+- Use pytest-django as test runner
+- Use factory_boy for model fixtures (not Django fixtures)
+- Use faker for generating realistic test data
+- Prefix test files with `test_` (e.g., test_orders.py)
+- Prefix test functions with `test_` (e.g., test_create_order)
+
+## Factory Patterns
+```python
+# Example factory
+class CustomerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "customers.Customer"
+
+    phone = factory.Sequence(lambda n: f"+7900{n:07d}")
+    full_name = factory.Faker("name", locale="ru_RU")
+    email = factory.Faker("email")
+```
+
+## Test Structure
+- Arrange → Act → Assert pattern
+- One assertion focus per test (can have multiple asserts for one concept)
+- Use `@pytest.mark.django_db` for database tests
+- Use `@pytest.fixture` for shared setup
+- Group related tests in classes: `class TestOrderCreation:`
+
+## What to Test
+- Model validation and constraints
+- Status transitions (valid and invalid)
+- FIFO deduction logic (critical business logic)
+- Selling price calculation
+- API endpoint responses (status codes, payloads)
+- Permission checks (who can access what)
+- Celery task execution (use `celery.contrib.pytest`)
+
+## Coverage Requirements
+- Minimum 80% coverage on business logic (inventory, orders)
+- 100% coverage on FIFO deduction and price calculation
+- All status transitions must have positive and negative tests
+
+## Naming Convention
+```
+test_{what}_{scenario}_{expected_result}
+```
+Example: `test_deduct_fifo_insufficient_stock_raises_error`
+
+## Performance
+- Use `pytest-xdist` for parallel test execution
+- Keep tests fast: mock external APIs (WhatsApp, Google Maps, payment)
+- Use `@pytest.mark.slow` for integration tests
