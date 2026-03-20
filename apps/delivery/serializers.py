@@ -6,4 +6,11 @@ from .models import DeliveryZone
 class DeliveryZoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryZone
-        fields = ("id", "name", "description", "base_price", "estimated_minutes", "is_active")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "base_price",
+            "estimated_minutes",
+            "is_active",
+        )

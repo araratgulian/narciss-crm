@@ -8,9 +8,7 @@ class DeliveryZone(models.Model):
 
     name = models.CharField(_("название"), max_length=255)
     description = models.TextField(_("описание"), blank=True)
-    base_price = models.DecimalField(
-        _("базовая цена"), max_digits=10, decimal_places=2
-    )
+    base_price = models.DecimalField(_("базовая цена"), max_digits=10, decimal_places=2)
     estimated_minutes = models.PositiveIntegerField(_("ориентировочное время (мин)"))
     is_active = models.BooleanField(_("активна"), default=True)
 

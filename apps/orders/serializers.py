@@ -12,7 +12,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderStatusLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatusLog
-        fields = ("id", "old_status", "new_status", "changed_by", "changed_at", "comment")
+        fields = (
+            "id",
+            "old_status",
+            "new_status",
+            "changed_by",
+            "changed_at",
+            "comment",
+        )
         read_only_fields = ("changed_at",)
 
 

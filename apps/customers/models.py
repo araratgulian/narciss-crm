@@ -14,9 +14,7 @@ class CustomerSegment(models.TextChoices):
 class Customer(models.Model):
     """Customer profile with contact info, preferences, and bonus balance."""
 
-    phone = models.CharField(
-        _("телефон"), max_length=20, unique=True, db_index=True
-    )
+    phone = models.CharField(_("телефон"), max_length=20, unique=True, db_index=True)
     email = models.EmailField(_("email"), blank=True)
     full_name = models.CharField(_("ФИО"), max_length=255)
     all_channels = models.JSONField(

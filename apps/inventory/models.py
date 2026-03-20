@@ -27,7 +27,9 @@ class Flower(models.Model):
 
     name = models.CharField(_("название"), max_length=255)
     category = models.CharField(_("категория"), max_length=100)
-    default_unit = models.CharField(_("единица измерения"), max_length=20, default="stem")
+    default_unit = models.CharField(
+        _("единица измерения"), max_length=20, default="stem"
+    )
 
     class Meta:
         verbose_name = _("цветок")
