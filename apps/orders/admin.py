@@ -5,19 +5,27 @@ from .models import Order, OrderItem, OrderStatusLog
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 1
+    extra = 0
+    readonly_fields = ("unit_price",)
 
 
 class OrderStatusLogInline(admin.TabularInline):
     model = OrderStatusLog
     extra = 0
-    readonly_fields = ("old_status", "new_status", "changed_by", "changed_at")
+    readonly_fields = (
+        "old_status",
+        "new_status",
+        "changed_by",
+        "changed_at",
+        "comment",
+    )
+    can_delete = False
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        "pk",
+        "id",
         "customer",
         "status",
         "delivery_date",
@@ -27,20 +35,29 @@ class OrderAdmin(admin.ModelAdmin):
         "source",
         "created_at",
     )
-    list_filter = ("status", "payment_status", "source", "delivery_date")
-    search_fields = ("customer__full_name", "customer__phone", "delivery_address")
-    readonly_fields = ("created_at", "updated_at")
+    list_filter = (
+        "status",
+        "payment_status",
+        "source",
+        "delivery_date",
+        "delivery_time_slot",
+    )
+    search_fields = (
+        "customer__full_name",
+        "customer__phone",
+        "delivery_address",
+        "notes",
+    )
+    list_editable = ("status",)
+    date_hierarchy = "created_at"
     inlines = [OrderItemInline, OrderStatusLogInline]
+    raw_id_fields = ("customer", "assigned_florist", "assigned_courier")
 
+    actions = ["mark_as_paid"]
 
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ("order", "bouquet_recipe", "quantity", "unit_price")
-    list_filter = ("order__status",)
-
-
-@admin.register(OrderStatusLog)
-class OrderStatusLogAdmin(admin.ModelAdmin):
-    list_display = ("order", "old_status", "new_status", "changed_by", "changed_at")
-    list_filter = ("new_status",)
-    readonly_fields = ("order", "old_status", "new_status", "changed_by", "changed_at")
+    @admin.action(description="Отметить как оплаченные")
+    def mark_as_paid(self, request, queryset):
+        updated = queryset.filter(status="new").update(
+            status="paid", payment_status="paid"
+        )
+        self.message_user(request, f"Обновлено заказов: {updated}")
