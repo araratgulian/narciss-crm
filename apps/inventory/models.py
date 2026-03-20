@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
+from django.db.models import Avg
 from django.utils.translation import gettext_lazy as _
 
 
@@ -113,6 +116,33 @@ class BouquetRecipe(models.Model):
     )
     is_active = models.BooleanField(_("активный"), default=True)
     image = models.ImageField(_("изображение"), upload_to="bouquets/", blank=True)
+    cached_selling_price = models.DecimalField(
+        _("кэшированная цена продажи"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    @property
+    def component_cost(self) -> Decimal:
+        """Cost of all components based on average price from available batches."""
+        total = Decimal("0.00")
+        for comp in self.recipe_components.select_related("flower"):
+            avg_price = FlowerBatch.objects.filter(
+                flower=comp.flower, status=BatchStatus.AVAILABLE
+            ).aggregate(avg=Avg("unit_price"))["avg"] or Decimal("0.00")
+            total += avg_price * comp.quantity
+        return total
+
+    @property
+    def selling_price(self) -> Decimal:
+        """selling_price = (component_cost + labor_cost) * (1 + margin_percent / 100)"""
+        return (self.component_cost + self.labor_cost) * (1 + self.margin_percent / 100)
+
+    def update_cached_price(self) -> None:
+        self.cached_selling_price = self.selling_price
+        self.save(update_fields=["cached_selling_price"])
 
     class Meta:
         verbose_name = _("техкарта букета")

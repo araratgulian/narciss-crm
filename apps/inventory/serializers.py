@@ -58,6 +58,12 @@ class BouquetRecipeListSerializer(serializers.ModelSerializer):
 
 class BouquetRecipeDetailSerializer(serializers.ModelSerializer):
     recipe_components = BouquetComponentSerializer(many=True, read_only=True)
+    selling_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    component_cost = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
 
     class Meta:
         model = BouquetRecipe
@@ -71,4 +77,7 @@ class BouquetRecipeDetailSerializer(serializers.ModelSerializer):
             "is_active",
             "image",
             "recipe_components",
+            "component_cost",
+            "selling_price",
+            "cached_selling_price",
         )
