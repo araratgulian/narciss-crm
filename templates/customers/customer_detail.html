@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}{{ customer.full_name }} | Нарцисс CRM{% endblock %}
+{% block page_title %}{% endblock %}
+{% block content %}
+<!-- Breadcrumb TopBar Override -->
+<div class="flex items-center gap-2 text-slate-500 text-sm font-['Manrope'] font-semibold mb-8 -mt-4">
+    <a href="{% url 'customers:customer_list' %}" class="hover:text-primary cursor-pointer transition-colors">Клиенты</a>
+    <span class="material-symbols-outlined text-sm">chevron_right</span>
+    <span class="text-primary font-bold">{{ customer.full_name }}</span>
+</div>
+
+<!-- Hero Profile Section -->
+<div class="flex items-end justify-between mb-10">
+    <div class="flex items-center gap-6">
+        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#01696f] to-[#004f54] flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-[#004f54]/20 brand-font">
+            {{ customer.full_name|truncatechars:2|upper }}
+        </div>
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-4xl font-extrabold text-primary tracking-tight">{{ customer.full_name }}</h1>
+                {% if customer.segment == 'vip' %}
+                <span class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1 border border-amber-200">
+                    <span class="material-symbols-outlined text-xs fill-icon" style="font-variation-settings: 'FILL' 1;">stars</span> VIP
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <button class="px-6 py-3 border-2 border-primary/10 text-primary font-bold rounded-xl hover:bg-white transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">edit</span> Редактировать
+        </button>
+        <button class="px-6 py-3 bg-gradient-to-r from-[#01696f] to-[#004f54] text-white font-bold rounded-xl shadow-lg shadow-[#004f54]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl">add_shopping_cart</span> Новый заказ
+        </button>
+    </div>
+</div>
+
+<!-- Bento Layout Grid -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Left Column: Personal Data -->
+    <div class="col-span-12 lg:col-span-3 space-y-6">
+        <!-- Contact Card -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm shadow-[#004f54]/5">
+            <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-5 flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">contact_page</span> Контактная информация
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-primary/60 text-xl">call</span>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Телефон</p>
+                        <p class="text-sm font-semibold">{{ customer.phone }}</p>
+                    </div>
+                </div>
+                {% if customer.email %}
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-primary/60 text-xl">mail</span>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Email</p>
+                        <p class="text-sm font-semibold">{{ customer.email }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="pt-2">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-3">Мессенджеры и соцсети</p>
+                    <div class="flex gap-3">
+                        {% if customer.all_channels.whatsapp %}
+                        <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary/70 hover:bg-primary-container hover:text-white cursor-pointer transition-all" title="WhatsApp">
+                            <span class="material-symbols-outlined text-lg">chat</span>
+                        </div>
+                        {% endif %}
+                        {% if customer.all_channels.telegram %}
+                        <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary/70 hover:bg-primary-container hover:text-white cursor-pointer transition-all" title="Telegram">
+                            <span class="material-symbols-outlined text-lg">send</span>
+                        </div>
+                        {% endif %}
+                        {% if customer.all_channels.instagram %}
+                        <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary/70 hover:bg-primary-container hover:text-white cursor-pointer transition-all" title="Instagram">
+                            <span class="material-symbols-outlined text-lg">photo_camera</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-surface-container">
+                    <p class="text-xs text-on-surface-variant">Клиент с: <span class="font-bold">{{ customer.created_at|date:"d E Y" }}</span></p>
+                </div>
+            </div>
+        </div>
+        <!-- Preferences Card -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm shadow-[#004f54]/5">
+            <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-5">Предпочтения</h3>
+            <div class="space-y-5">
+                {% if customer.preferences.fav_flowers %}
+                <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-2">Любимые цветы</p>
+                    <div class="flex flex-wrap gap-2">
+                        {% for flower in customer.preferences.fav_flowers %}
+                        <span class="px-2 py-1 bg-surface-container rounded text-xs font-medium">{{ flower }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="p-3 bg-primary/5 rounded-xl flex items-center justify-between">
+                    <span class="text-xs font-medium text-primary">Баланс</span>
+                    <span class="text-sm font-extrabold text-primary">₽{{ customer.bonus_balance|floatformat:0 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center Column: Order History -->
+    <div class="col-span-12 lg:col-span-6 space-y-6">
+        <div class="bg-surface-container-lowest rounded-2xl shadow-sm shadow-[#004f54]/5 overflow-hidden">
+            <div class="p-6 border-b border-surface-container flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-primary brand-font">История заказов</h3>
+                    <p class="text-sm text-on-surface-variant">Всего {{ customer_stats.total_orders|default:"0" }} заказ{{ customer_stats.total_orders|pluralize:"а,ов" }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container rounded-lg">filter_list</span>
+                    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container rounded-lg">download</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-separate border-spacing-y-2 px-4">
+                    <thead>
+                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <th class="py-4 px-4">№</th>
+                        <th class="py-4 px-4">Дата</th>
+                        <th class="py-4 px-4">Букет</th>
+                        <th class="py-4 px-4">Сумма</th>
+                        <th class="py-4 px-4">Статус</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for order in orders %}
+                    <tr class="group hover:bg-surface-container-low transition-all">
+                        <td class="py-3 px-4 text-sm font-bold text-primary">
+                            <a href="{% url 'orders:order_detail' order.pk %}">#{{ order.pk }}</a>
+                        </td>
+                        <td class="py-3 px-4 text-sm text-on-surface-variant">{{ order.created_at|date:"d.m.Y" }}</td>
+                        <td class="py-3 px-4 text-sm font-medium">
+                            {% for item in order.items.all %}{{ item.bouquet_recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </td>
+                        <td class="py-3 px-4 text-sm font-bold">₽{{ order.total_price|floatformat:0 }}</td>
+                        <td class="py-3 px-4">
+                            {% if order.status == 'completed' or order.status == 'delivered' %}
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                            {% elif order.status == 'assembling' %}
+                            <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                            {% elif order.status == 'cancelled' or order.status == 'refunded' %}
+                            <span class="px-3 py-1 bg-error-container text-error rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-on-surface-variant">Заказов пока нет</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Analytics & Notes -->
+    <div class="col-span-12 lg:col-span-3 space-y-6">
+        <!-- Analytics KPI Card -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm shadow-[#004f54]/5">
+            <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-6">Аналитика клиента</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-surface-container-low rounded-xl">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Средний чек</p>
+                    <p class="text-lg font-extrabold text-primary">₽{{ customer_stats.avg_check|default:"0"|floatformat:0 }}</p>
+                </div>
+                <div class="p-4 bg-surface-container-low rounded-xl">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Частота</p>
+                    <p class="text-sm font-extrabold text-primary">{{ customer_stats.order_frequency|default:"—" }}</p>
+                </div>
+                <div class="p-4 bg-primary/5 rounded-xl col-span-2">
+                    <p class="text-[10px] font-bold text-primary/60 uppercase mb-1">LTV (Общий доход)</p>
+                    <p class="text-2xl font-extrabold text-primary">₽{{ customer_stats.ltv|default:"0"|floatformat:0 }}</p>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-surface-container">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-medium text-slate-500">Последний заказ</p>
+                    <p class="text-xs font-bold text-primary">{{ customer_stats.last_order_date|default:"—" }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Manager Notes Card -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm shadow-[#004f54]/5 relative overflow-hidden">
+            <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Заметки менеджера</h3>
+            {% if customer.notes %}
+            <div class="bg-amber-50/50 p-4 rounded-xl border-l-4 border-amber-300 mb-4">
+                <p class="text-sm text-slate-700 leading-relaxed italic">"{{ customer.notes }}"</p>
+            </div>
+            {% endif %}
+            <button class="w-full py-3 border-2 border-dashed border-slate-200 text-slate-400 font-bold rounded-xl hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">add_circle</span> Добавить заметку
+            </button>
+            <div class="absolute -bottom-4 -right-4 text-primary-fixed-dim opacity-5 pointer-events-none">
+                <span class="material-symbols-outlined text-[120px]">local_florist</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAB -->
+<div class="fixed bottom-8 right-8 z-50">
+    <button class="w-16 h-16 bg-gradient-to-br from-[#01696f] to-[#004f54] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-3xl">add</span>
+    </button>
+</div>
+{% endblock %}

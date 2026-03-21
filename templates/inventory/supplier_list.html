@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Поставщики | Нарцисс CRM{% endblock %}
+{% block page_title %}Поставщики{% endblock %}
+{% block content %}
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low/50 sticky top-0 z-10">
+        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <th class="py-4 pl-6">Поставщик</th>
+            <th class="py-4">Телефон</th>
+            <th class="py-4 pr-6">Email</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container-low">
+        {% for supplier in suppliers %}
+        <tr class="group hover:bg-primary/5 transition-colors">
+            <td class="py-5 pl-6 font-semibold text-on-surface">{{ supplier.name }}</td>
+            <td class="py-5 text-sm text-slate-600">{{ supplier.contact_phone|default:"—" }}</td>
+            <td class="py-5 pr-6 text-sm text-slate-600">{{ supplier.email|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3" class="py-8 text-center text-on-surface-variant">Поставщиков пока нет</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

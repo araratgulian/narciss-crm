@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Склад | Нарцисс CRM{% endblock %}
+{% block page_title %}Склад{% endblock %}
+{% block content %}
+<!-- Page Tabs -->
+<div class="flex gap-8 border-none mb-6 -mt-4">
+    <a class="text-[#004f54] border-b-2 border-[#01696f] pb-4 font-medium text-sm font-['Inter']" href="{% url 'inventory:flower_list' %}">Партии цветов</a>
+    <a class="text-slate-500 hover:text-[#004f54] pb-4 font-medium text-sm font-['Inter'] transition-colors" href="#">Техкарты букетов</a>
+    <a class="text-slate-500 hover:text-[#004f54] pb-4 font-medium text-sm font-['Inter'] transition-colors" href="#">Списания</a>
+</div>
+
+<!-- FILTER BAR -->
+<div class="flex flex-wrap items-center gap-4 bg-surface-container-lowest p-4 rounded-2xl shadow-sm mb-6">
+    <div class="flex-1 flex gap-3">
+        <div class="relative group">
+            <select class="appearance-none bg-surface-container-low border-none rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:ring-2 focus:ring-primary/20 w-48 cursor-pointer">
+                <option>Все цветы</option>
+                {% for flower in flowers %}
+                <option value="{{ flower.pk }}">{{ flower.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+        </div>
+        <div class="relative group">
+            <select class="appearance-none bg-surface-container-low border-none rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:ring-2 focus:ring-primary/20 w-48 cursor-pointer">
+                <option>Все статусы</option>
+                <option>В наличии</option>
+                <option>Горящие</option>
+                <option>Истекает</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <div class="relative">
+            <input class="bg-surface-container-low border-none rounded-xl px-10 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 w-64"
+                   placeholder="Поиск по названию..."
+                   type="text"
+                   hx-get="{% url 'inventory:flower_list' %}"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-target="#batch-table"
+                   name="q">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400">search</span>
+        </div>
+        <button class="bg-[#01696f] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined text-lg">add</span>
+            Новая партия
+        </button>
+    </div>
+</div>
+
+<!-- DATA TABLE -->
+<div id="batch-table" class="bg-surface-container-lowest rounded-2xl overflow-hidden flex-1 shadow-sm mb-6">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low/50 sticky top-0 z-10">
+        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <th class="py-4 pl-6 w-12">#</th>
+            <th class="py-4">Цветок</th>
+            <th class="py-4">Поставщик</th>
+            <th class="py-4">Поступление</th>
+            <th class="py-4">Годен до</th>
+            <th class="py-4">Остаток</th>
+            <th class="py-4">Цена/шт</th>
+            <th class="py-4 pr-6">Статус</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container-low">
+        {% for batch in batches %}
+        <tr class="group hover:bg-primary/5 transition-colors cursor-pointer">
+            <td class="py-5 pl-6 text-sm text-slate-400 font-medium">{{ batch.pk }}</td>
+            <td class="py-5">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg">🌸</span>
+                    <span class="font-semibold text-on-surface">{{ batch.flower.name }}</span>
+                </div>
+            </td>
+            <td class="py-5 text-sm text-slate-600">{{ batch.supplier.name }}</td>
+            <td class="py-5 text-sm text-slate-600">{{ batch.arrival_date|date:"d.m" }}</td>
+            <td class="py-5 text-sm font-medium {% if batch.is_expiring %}text-error{% else %}text-slate-600{% endif %}">{{ batch.expiry_date|date:"d.m" }}</td>
+            <td class="py-5">
+                <div class="w-24 flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>{{ batch.quantity }}</span>
+                        <span>{{ batch.initial_quantity|default:batch.quantity }}</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full {% if batch.status == 'available' %}bg-[#2E7D32]{% elif batch.status == 'low_stock' %}bg-amber-500{% else %}bg-error{% endif %}" style="width: {{ batch.stock_pct|default:100 }}%"></div>
+                    </div>
+                </div>
+            </td>
+            <td class="py-5 text-sm font-semibold">₽{{ batch.unit_price|floatformat:0 }}</td>
+            <td class="py-5 pr-6">
+                {% if batch.status == 'available' %}
+                <span class="bg-[#E8F5E9] text-[#2E7D32] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    В наличии
+                </span>
+                {% elif batch.status == 'low_stock' %}
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+                    Горящие
+                </span>
+                {% elif batch.status == 'expired' %}
+                <span class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">error</span>
+                    Истекает
+                </span>
+                {% else %}
+                <span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+                    {{ batch.get_status_display }}
+                </span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8" class="py-8 text-center text-on-surface-variant">Нет партий</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- BOTTOM SUMMARY -->
+<div class="flex items-center justify-between bg-[#004f54] text-white p-4 rounded-2xl shadow-lg">
+    <div class="flex gap-10 pl-4">
+        <div class="flex flex-col">
+            <span class="text-[10px] text-teal-100/50 uppercase font-bold tracking-widest">Всего позиций</span>
+            <span class="text-lg font-bold">{{ total_items|default:"0" }}</span>
+        </div>
+        <div class="flex flex-col">
+            <span class="text-[10px] text-teal-100/50 uppercase font-bold tracking-widest">На складе</span>
+            <span class="text-lg font-bold">{{ total_quantity|default:"0" }} шт</span>
+        </div>
+        <div class="flex flex-col">
+            <span class="text-[10px] text-teal-100/50 uppercase font-bold tracking-widest">Стоимость</span>
+            <span class="text-lg font-bold">₽{{ total_value|default:"0"|floatformat:0 }}</span>
+        </div>
+    </div>
+    {% if expiring_count %}
+    <div class="bg-white/10 px-6 py-2 rounded-xl flex items-center gap-3">
+        <span class="material-symbols-outlined text-amber-400" style="font-variation-settings: 'FILL' 1;">warning</span>
+        <span class="text-sm font-medium">{{ expiring_count }} горящ{{ expiring_count|pluralize:"ая партия,ие партии,их партий" }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

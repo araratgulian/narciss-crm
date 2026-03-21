@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Нарцисс CRM - Дашборд{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% block content %}
+<!-- KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- KPI Card 1: Заказы сегодня -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 relative overflow-hidden shadow-sm">
+        <div class="absolute -right-2 -bottom-2 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-8xl">shopping_bag</span>
+        </div>
+        <div class="flex justify-between items-start mb-4">
+            <span class="text-outline font-label text-[10px] uppercase tracking-widest font-bold">Заказы сегодня</span>
+            {% if orders_today_pct %}
+            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold">{{ orders_today_pct }}</span>
+            {% endif %}
+        </div>
+        <div class="text-primary font-headline text-4xl font-bold tracking-tight">{{ orders_today|default:"0" }}</div>
+    </div>
+    <!-- KPI Card 2: Выручка -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 relative overflow-hidden shadow-sm">
+        <div class="absolute -right-2 -bottom-2 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-8xl">payments</span>
+        </div>
+        <div class="flex justify-between items-start mb-4">
+            <span class="text-outline font-label text-[10px] uppercase tracking-widest font-bold">Выручка</span>
+            {% if revenue_today_pct %}
+            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold">{{ revenue_today_pct }}</span>
+            {% endif %}
+        </div>
+        <div class="text-primary font-headline text-4xl font-bold tracking-tight">{{ revenue_today|default:"₽0" }}</div>
+    </div>
+    <!-- KPI Card 3: Средний чек -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 relative overflow-hidden shadow-sm">
+        <div class="absolute -right-2 -bottom-2 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-8xl">receipt</span>
+        </div>
+        <div class="flex justify-between items-start mb-4">
+            <span class="text-outline font-label text-[10px] uppercase tracking-widest font-bold">Средний чек</span>
+        </div>
+        <div class="text-primary font-headline text-4xl font-bold tracking-tight">{{ avg_check|default:"₽0" }}</div>
+    </div>
+    <!-- KPI Card 4: Горящие цветы -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 relative overflow-hidden shadow-sm border-l-4 border-error">
+        <div class="absolute -right-2 -bottom-2 opacity-[0.03] pointer-events-none">
+            <span class="material-symbols-outlined text-8xl">local_fire_department</span>
+        </div>
+        <div class="flex justify-between items-start mb-4">
+            <span class="text-outline font-label text-[10px] uppercase tracking-widest font-bold">Горящие цветы</span>
+            {% if hot_flowers_count %}
+            <span class="bg-error-container text-error px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">Срочно!</span>
+            {% endif %}
+        </div>
+        <div class="text-error font-headline text-4xl font-bold tracking-tight">{{ hot_flowers_count|default:"0" }}</div>
+    </div>
+</div>
+
+<!-- Middle Row: Table & Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Orders Table -->
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xl font-headline font-bold text-primary">Последние заказы</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="text-outline font-label text-[10px] uppercase tracking-widest border-b border-surface-container-high">
+                <tr>
+                    <th class="pb-4">#</th>
+                    <th class="pb-4">Клиент</th>
+                    <th class="pb-4">Букет</th>
+                    <th class="pb-4">Статус</th>
+                    <th class="pb-4">Доставка</th>
+                    <th class="pb-4 text-right">Сумма</th>
+                </tr>
+                </thead>
+                <tbody class="text-sm font-body">
+                {% for order in recent_orders %}
+                <tr class="group hover:bg-surface-container-low/50 transition-colors">
+                    <td class="py-4 font-semibold text-primary">{{ order.pk }}</td>
+                    <td class="py-4">
+                        <a href="{% url 'customers:customer_detail' order.customer.pk %}" class="hover:underline">{{ order.customer.full_name }}</a>
+                    </td>
+                    <td class="py-4 text-on-surface-variant">
+                        {% for item in order.items.all %}{{ item.bouquet_recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    </td>
+                    <td class="py-4">
+                        {% if order.status == 'completed' or order.status == 'delivered' %}
+                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'assembling' %}
+                        <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'paid' or order.status == 'new' %}
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'delivering' %}
+                        <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'cancelled' or order.status == 'refunded' %}
+                        <span class="px-3 py-1 bg-error-container text-error rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[11px] font-bold uppercase">{{ order.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 text-on-surface-variant">{{ order.get_delivery_time_slot_display }}</td>
+                    <td class="py-4 text-right font-bold">₽{{ order.total_price|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-on-surface-variant">Заказов пока нет</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-6 text-center">
+            <a class="text-primary font-bold text-sm hover:underline" href="{% url 'orders:order_list' %}">Все заказы →</a>
+        </div>
+    </div>
+
+    <!-- Alerts Panel: Горящие цветы -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm flex flex-col">
+        <h2 class="text-xl font-headline font-bold text-primary mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-error">local_fire_department</span>
+            Горящие цветы
+        </h2>
+        <div class="space-y-6 flex-1">
+            {% for batch in expiring_batches %}
+            <div>
+                <div class="flex justify-between items-start mb-1">
+                    <span class="font-bold text-sm">{{ batch.flower.name }} — партия #{{ batch.pk }}</span>
+                    {% if batch.days_until_expiry == 0 %}
+                    <span class="px-2 py-0.5 bg-red-900 text-white text-[9px] font-bold rounded">КРИТИЧНО</span>
+                    {% elif batch.days_until_expiry == 1 %}
+                    <span class="px-2 py-0.5 bg-error text-white text-[9px] font-bold rounded">СРОЧНО</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">ВНИМАНИЕ</span>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between text-xs text-on-surface-variant mb-2">
+                    <span>Срок: {{ batch.expiry_date|date:"d.m.Y" }}</span>
+                    <span class="font-bold text-error">{{ batch.quantity }} шт осталось</span>
+                </div>
+                <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-error h-full rounded-full" style="width: {{ batch.stock_pct|default:20 }}%"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-on-surface-variant text-sm">Нет горящих партий</p>
+            {% endfor %}
+        </div>
+        <a href="{% url 'inventory:flower_list' %}" class="mt-8 w-full py-3 bg-primary text-white rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md block text-center">
+            Перейти в склад
+        </a>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Bar Chart Simulation -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+        <h2 class="text-xl font-headline font-bold text-primary mb-8">Выручка за 7 дней</h2>
+        <div class="flex items-end justify-between h-48 gap-3 px-2">
+            {% for day in weekly_revenue %}
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/80 transition-all" style="height: {{ day.pct|default:50 }}%"></div>
+                <span class="text-[10px] text-outline font-bold">{{ day.label }}</span>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[40%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Пн</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[65%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Вт</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[55%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Ср</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[85%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Чт</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[95%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Пт</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-[#00696f] rounded-t-lg h-[100%]"></div>
+                <span class="text-[10px] text-outline font-bold">Сб</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 flex-1 group">
+                <div class="w-full bg-primary/20 rounded-t-lg h-[70%] group-hover:bg-primary/80 transition-all"></div>
+                <span class="text-[10px] text-outline font-bold">Вс</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Source Chart -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+        <h2 class="text-xl font-headline font-bold text-primary mb-8">Источники заказов</h2>
+        <div class="flex items-center gap-12">
+            <!-- Donut Chart Mockup -->
+            <div class="relative w-40 h-40">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" fill="transparent" r="16" stroke="#01696f" stroke-dasharray="42, 100" stroke-width="4"></circle>
+                    <circle cx="18" cy="18" fill="transparent" r="16" stroke="#29676c" stroke-dasharray="28, 100" stroke-dashoffset="-42" stroke-width="4"></circle>
+                    <circle cx="18" cy="18" fill="transparent" r="16" stroke="#85d3da" stroke-dasharray="18, 100" stroke-dashoffset="-70" stroke-width="4"></circle>
+                    <circle cx="18" cy="18" fill="transparent" r="16" stroke="#e1e2e4" stroke-dasharray="12, 100" stroke-dashoffset="-88" stroke-width="4"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-xs font-bold text-outline">ИТОГО</span>
+                    <span class="text-xl font-bold text-primary">100%</span>
+                </div>
+            </div>
+            <div class="flex-1 space-y-3">
+                {% for source in order_sources %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full" style="background-color: {{ source.color }}"></div>
+                        <span class="text-sm font-medium">{{ source.label }}</span>
+                    </div>
+                    <span class="text-sm font-bold">{{ source.pct }}%</span>
+                </div>
+                {% empty %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-[#01696f]"></div>
+                        <span class="text-sm font-medium">Сайт</span>
+                    </div>
+                    <span class="text-sm font-bold">42%</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-[#29676c]"></div>
+                        <span class="text-sm font-medium">WhatsApp</span>
+                    </div>
+                    <span class="text-sm font-bold">28%</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-[#85d3da]"></div>
+                        <span class="text-sm font-medium">Telegram</span>
+                    </div>
+                    <span class="text-sm font-bold">18%</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-[#e1e2e4]"></div>
+                        <span class="text-sm font-medium">Телефон</span>
+                    </div>
+                    <span class="text-sm font-bold">12%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contextual FAB -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+    <span class="material-symbols-outlined">add</span>
+</button>
+{% endblock %}
