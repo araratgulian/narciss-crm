@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ #{{ order.pk }} | Нарцисс CRM{% endblock %}
+{% block page_title %}{% endblock %}
+{% block content %}
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-on-surface-variant text-xs mb-6 -mt-4 font-medium">
+    <a class="hover:text-primary transition-colors" href="{% url 'dashboard:index' %}">Дашборд</a>
+    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+    <a class="hover:text-primary transition-colors" href="{% url 'orders:order_list' %}">Заказы</a>
+    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+    <span class="text-primary font-bold">Заказ #{{ order.pk }}</span>
+</nav>
+
+<!-- Header Section -->
+<div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-4">
+        <h2 class="text-3xl font-bold tracking-tight text-on-surface">Заказ #{{ order.pk }}</h2>
+        {% if order.status == 'assembling' %}
+        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider border border-amber-200 shadow-sm flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            {{ order.get_status_display }}
+        </span>
+        {% elif order.status == 'completed' or order.status == 'delivered' %}
+        <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+            {{ order.get_status_display }}
+        </span>
+        {% elif order.status == 'paid' or order.status == 'new' %}
+        <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+            {{ order.get_status_display }}
+        </span>
+        {% elif order.status == 'delivering' %}
+        <span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+            {{ order.get_status_display }}
+        </span>
+        {% elif order.status == 'cancelled' or order.status == 'refunded' %}
+        <span class="px-3 py-1 rounded-full bg-error-container text-error text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+            {{ order.get_status_display }}
+        </span>
+        {% else %}
+        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+            {{ order.get_status_display }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="flex items-center gap-3">
+        <button class="bg-primary hover:bg-primary-container text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/10"
+                hx-put="{% url 'orders:order_detail' order.pk %}"
+                hx-target="#main-content">
+            Сменить статус
+            <span class="material-symbols-outlined text-sm">expand_more</span>
+        </button>
+        <button class="border border-outline-variant bg-white hover:bg-surface-container text-on-surface px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all">
+            <span class="material-symbols-outlined text-[20px]">print</span>
+            Печать
+        </button>
+        <button class="border border-error/30 hover:bg-error/5 text-error px-5 py-2.5 rounded-xl font-bold text-sm transition-all">
+            Отменить
+        </button>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="grid grid-cols-10 gap-8">
+    <!-- LEFT COLUMN (60%) -->
+    <div class="col-span-6 space-y-8">
+        <!-- Card: Состав заказа -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-surface-container flex items-center justify-between">
+                <h3 class="text-lg font-bold text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">local_florist</span>
+                    Состав заказа
+                </h3>
+            </div>
+            <div class="p-0">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-surface-container-low text-on-surface-variant uppercase text-[10px] font-bold tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Букет</th>
+                        <th class="px-4 py-4 text-center">Кол-во</th>
+                        <th class="px-4 py-4 text-right">Цена</th>
+                        <th class="px-6 py-4 text-right">Сумма</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-container-low">
+                    {% for item in order.items.all %}
+                    <tr class="hover:bg-surface-container-low/30 transition-colors">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary/40">image</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">{{ item.bouquet_recipe.name }}</p>
+                                    <p class="text-xs text-on-surface-variant">{{ item.bouquet_recipe.description|truncatechars:30 }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-5 text-center font-medium">{{ item.quantity }}</td>
+                        <td class="px-4 py-5 text-right font-medium">₽{{ item.unit_price|floatformat:0 }}</td>
+                        <td class="px-6 py-5 text-right font-bold text-primary">₽{{ item.line_total|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-surface-container-low p-6 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-on-surface-variant font-medium">Промежуточный итог:</span>
+                    <span class="text-on-surface font-bold">₽{{ subtotal|floatformat:0 }}</span>
+                </div>
+                {% if order.delivery_zone %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-on-surface-variant font-medium">Доставка ({{ order.delivery_zone.name }}):</span>
+                    <span class="text-on-surface font-bold">₽{{ order.delivery_zone.delivery_price|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+                <div class="h-px bg-outline-variant/30 my-4"></div>
+                <div class="flex justify-between items-end pt-2">
+                    <span class="text-on-surface-variant font-bold uppercase text-[11px] tracking-widest pb-1">Итого к оплате</span>
+                    <span class="text-3xl font-extrabold text-primary font-headline">₽{{ order.total_price|floatformat:0 }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Card: История статусов -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-bold text-on-surface mb-8 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">history</span>
+                История статусов
+            </h3>
+            <div class="relative space-y-8 pl-8">
+                <div class="absolute left-[7px] top-2 bottom-2 w-0.5 bg-surface-container"></div>
+                {% for log in status_logs %}
+                <div class="relative flex gap-6">
+                    {% if forloop.last %}
+                    <div class="absolute -left-8 w-4 h-4 rounded-full bg-amber-500 border-4 border-white shadow-[0_0_0_4px_rgba(245,158,11,0.2)] z-10 animate-pulse"></div>
+                    {% elif log.new_status == 'paid' %}
+                    <div class="absolute -left-8 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-sm z-10"></div>
+                    {% elif log.new_status == 'completed' or log.new_status == 'delivered' %}
+                    <div class="absolute -left-8 w-4 h-4 rounded-full bg-green-500 border-4 border-white shadow-sm z-10"></div>
+                    {% else %}
+                    <div class="absolute -left-8 w-4 h-4 rounded-full bg-outline-variant border-4 border-white shadow-sm z-10"></div>
+                    {% endif %}
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-on-surface">{{ log.changed_at|date:"H:i" }}</span>
+                            <p class="font-bold text-sm text-on-surface-variant">{{ log.get_new_status_display|default:log.new_status }}</p>
+                        </div>
+                        {% if log.changed_by %}
+                        <p class="text-xs text-on-surface-variant mt-1">{{ log.changed_by.get_full_name|default:log.changed_by.username }}</p>
+                        {% endif %}
+                        {% if log.comment %}
+                        <p class="text-xs text-on-surface-variant mt-1">{{ log.comment }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="relative flex gap-6">
+                    <div class="absolute -left-8 w-4 h-4 rounded-full bg-outline-variant border-4 border-white shadow-sm z-10"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-on-surface">{{ order.created_at|date:"H:i" }}</span>
+                            <p class="font-bold text-sm text-on-surface-variant">{{ order.get_status_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <!-- RIGHT COLUMN (40%) -->
+    <div class="col-span-4 space-y-8">
+        <!-- Card: Клиент -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-on-surface">Клиент</h3>
+                {% if order.customer.segment == 'vip' %}
+                <span class="px-2 py-0.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-extrabold uppercase tracking-widest border border-tertiary-fixed-dim shadow-sm">VIP</span>
+                {% endif %}
+            </div>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-primary-container text-white flex items-center justify-center font-bold text-xl shadow-inner">
+                    {{ order.customer.full_name|truncatechars:2|upper }}
+                </div>
+                <div>
+                    <a class="font-bold text-primary hover:underline text-lg decoration-primary/30 underline-offset-4" href="{% url 'customers:customer_detail' order.customer.pk %}">{{ order.customer.full_name }}</a>
+                    {% if order.customer.segment == 'vip' %}
+                    <span class="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">VIP</span>
+                    {% endif %}
+                    <p class="text-sm text-on-surface-variant font-medium mt-0.5">{{ order.customer.phone }}</p>
+                </div>
+            </div>
+            <div class="space-y-3 pt-4 border-t border-surface-container">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-on-surface-variant font-medium">Бонусный баланс:</span>
+                    <span class="text-on-surface font-bold">₽{{ order.customer.bonus_balance|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-on-surface-variant font-medium">Заказов всего:</span>
+                    <span class="text-on-surface font-bold">{{ order.customer.orders.count }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Card: Доставка -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-bold text-on-surface mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">local_shipping</span>
+                Доставка
+            </h3>
+            <div class="space-y-6">
+                <div class="flex gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">event</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-on-surface">{{ order.delivery_date|date:"d E Y" }}</p>
+                        <p class="text-xs text-on-surface-variant font-medium">{{ order.get_delivery_time_slot_display }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">location_on</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-on-surface leading-tight">{{ order.delivery_address }}</p>
+                        {% if order.delivery_zone %}
+                        <span class="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">{{ order.delivery_zone.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if order.assigned_courier %}
+                <div class="p-4 bg-surface-container-low rounded-xl">
+                    <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Курьер</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-xs">
+                                {{ order.assigned_courier.get_full_name|truncatechars:2|upper }}
+                            </div>
+                            <p class="font-bold text-sm text-on-surface">{{ order.assigned_courier.get_full_name|default:order.assigned_courier.username }}</p>
+                        </div>
+                        <button class="text-primary hover:bg-primary/5 p-1 rounded-lg transition-colors">
+                            <span class="material-symbols-outlined">call</span>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="border-2 border-dashed border-outline-variant/50 rounded-xl p-8 flex flex-col items-center justify-center gap-2 bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer group">
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary text-3xl transition-colors">photo_camera</span>
+                    <p class="text-xs font-bold text-outline-variant group-hover:text-on-surface-variant transition-colors">Фото при доставке</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Card: Заметки -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-bold text-on-surface mb-4">Заметки</h3>
+            <div class="space-y-4">
+                <textarea class="w-full h-24 rounded-xl border-none bg-surface-container-highest/30 focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-outline-variant p-4 transition-all" placeholder="Добавить заметку...">{{ order.notes }}</textarea>
+                <button class="w-full bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-bold py-2.5 rounded-xl text-sm transition-all active:scale-[0.98]">
+                    Сохранить
+                </button>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

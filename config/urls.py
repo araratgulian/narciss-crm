@@ -8,6 +8,11 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
+    # Template-based UI views
+    path("", include("apps.dashboard.urls")),
+    path("orders/", include("apps.orders.urls")),
+    path("customers/", include("apps.customers.urls")),
+    path("inventory/", include("apps.inventory.urls")),
 ]
 
 if settings.DEBUG:

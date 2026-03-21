@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Заказы | Нарцисс CRM{% endblock %}
+{% block page_title %}Заказы{% endblock %}
+{% block content %}
+<!-- FILTER BAR -->
+<div class="flex flex-wrap items-center gap-4 bg-surface-container-lowest p-4 rounded-2xl shadow-sm mb-6">
+    <div class="flex-1 flex gap-3">
+        <div class="relative group">
+            <select class="appearance-none bg-surface-container-low border-none rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:ring-2 focus:ring-primary/20 w-48 cursor-pointer">
+                <option>Все статусы</option>
+                <option value="new">Новый</option>
+                <option value="paid">Оплачен</option>
+                <option value="assembling">Сборка</option>
+                <option value="delivering">Доставка</option>
+                <option value="completed">Завершён</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <div class="relative">
+            <input class="bg-surface-container-low border-none rounded-xl px-10 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 w-64"
+                   placeholder="Поиск заказа, клиента..."
+                   type="text"
+                   hx-get="{% url 'orders:order_list' %}"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-target="#order-table"
+                   name="q">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400">search</span>
+        </div>
+    </div>
+</div>
+
+<!-- DATA TABLE -->
+<div id="order-table" class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low/50 sticky top-0 z-10">
+        <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <th class="py-4 pl-6">#</th>
+            <th class="py-4">Клиент</th>
+            <th class="py-4">Букет</th>
+            <th class="py-4">Статус</th>
+            <th class="py-4">Дата доставки</th>
+            <th class="py-4 pr-6 text-right">Сумма</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-container-low">
+        {% for order in orders %}
+        <tr class="group hover:bg-primary/5 transition-colors cursor-pointer" onclick="window.location='{% url 'orders:order_detail' order.pk %}'">
+            <td class="py-5 pl-6 text-sm font-bold text-primary">{{ order.pk }}</td>
+            <td class="py-5 text-sm font-medium">{{ order.customer.full_name }}</td>
+            <td class="py-5 text-sm text-on-surface-variant">
+                {% for item in order.items.all %}{{ item.bouquet_recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
+            <td class="py-5">
+                {% if order.status == 'completed' or order.status == 'delivered' %}
+                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% elif order.status == 'assembling' %}
+                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% elif order.status == 'paid' or order.status == 'new' %}
+                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% elif order.status == 'delivering' %}
+                <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% elif order.status == 'cancelled' or order.status == 'refunded' %}
+                <span class="bg-error-container text-error px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% else %}
+                <span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-bold uppercase">{{ order.get_status_display }}</span>
+                {% endif %}
+            </td>
+            <td class="py-5 text-sm text-on-surface-variant">{{ order.delivery_date|date:"d.m.Y" }}</td>
+            <td class="py-5 pr-6 text-sm font-bold text-right">₽{{ order.total_price|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="py-8 text-center text-on-surface-variant">Заказов пока нет</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex items-center justify-center gap-2">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-outline-variant text-slate-400 hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-lg">chevron_left</span>
+    </a>
+    {% endif %}
+    <span class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">{{ page_obj.number }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-outline-variant text-slate-400 hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-lg">chevron_right</span>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

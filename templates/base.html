@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="light" lang="ru">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>{% block title %}Нарцисс CRM{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "on-background": "#191c1e",
+                    "surface-container-high": "#e7e8ea",
+                    "surface-container-low": "#f3f4f6",
+                    "error": "#ba1a1a",
+                    "primary-container": "#01696f",
+                    "on-primary-fixed": "#002022",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#97e6ec",
+                    "tertiary-container": "#8b4f2a",
+                    "primary-fixed": "#a1f0f6",
+                    "outline-variant": "#bec8c9",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#331200",
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#6e3815",
+                    "surface-bright": "#f8f9fb",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#e1e2e4",
+                    "surface-variant": "#e1e2e4",
+                    "background": "#F7F6F2",
+                    "tertiary-fixed-dim": "#ffb68d",
+                    "secondary-fixed-dim": "#95d1d6",
+                    "outline": "#6f797a",
+                    "on-secondary-container": "#2e6b70",
+                    "on-surface-variant": "#3f4949",
+                    "surface-dim": "#d9dadc",
+                    "inverse-surface": "#2e3132",
+                    "secondary": "#29676c",
+                    "on-surface": "#191c1e",
+                    "inverse-on-surface": "#f0f1f3",
+                    "secondary-container": "#aeeaf0",
+                    "on-tertiary-fixed-variant": "#6e3815",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ffceb5",
+                    "primary": "#004f54",
+                    "on-primary-fixed-variant": "#004f54",
+                    "inverse-primary": "#85d3da",
+                    "on-secondary-fixed-variant": "#054f54",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#b1edf3",
+                    "surface-tint": "#01696f",
+                    "surface": "#F7F6F2",
+                    "on-secondary-fixed": "#002022",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdbc9",
+                    "surface-container": "#edeef0",
+                    "primary-fixed-dim": "#85d3da"
+                },
+                fontFamily: {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+                },
+                borderRadius: {"DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "full": "9999px"},
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        vertical-align: middle;
+    }
+    .fill-icon {
+        font-variation-settings: 'FILL' 1;
+    }
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, .brand-font { font-family: 'Manrope', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-[#0C4E54] flex flex-col py-6 font-['Manrope'] shadow-2xl transition-all">
+<div class="px-6 mb-10 flex flex-col gap-1">
+    <div class="flex items-center gap-2">
+        <span class="text-white text-xl">🌸</span>
+        <h1 class="text-xl font-bold text-white tracking-wide">Нарцисс</h1>
+    </div>
+</div>
+<nav class="flex-1 space-y-1">
+    <!-- Дашборд -->
+    <a class="flex items-center gap-3 px-4 py-3 {% if sidebar_active == 'dashboard' %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} rounded-lg mx-2 transition-all" href="{% url 'dashboard:index' %}">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Дашборд</span>
+    </a>
+    <!-- Заказы -->
+    <a class="flex items-center gap-3 px-4 py-3 {% if sidebar_active == 'orders' %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} rounded-lg mx-2 transition-colors duration-200" href="{% url 'orders:order_list' %}">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span>Заказы</span>
+    </a>
+    <!-- Клиенты -->
+    <a class="flex items-center gap-3 px-4 py-3 {% if sidebar_active == 'customers' %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} rounded-lg mx-2 transition-colors duration-200" href="{% url 'customers:customer_list' %}">
+        <span class="material-symbols-outlined">group</span>
+        <span>Клиенты</span>
+    </a>
+    <!-- Склад -->
+    <a class="flex items-center gap-3 px-4 py-3 {% if sidebar_active == 'inventory' %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} rounded-lg mx-2 transition-colors duration-200" href="{% url 'inventory:flower_list' %}">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span>Склад</span>
+    </a>
+    <!-- Поставщики -->
+    <a class="flex items-center gap-3 px-4 py-3 {% if sidebar_active == 'suppliers' %}bg-white/10 text-white{% else %}text-white/70 hover:text-white hover:bg-white/5{% endif %} rounded-lg mx-2 transition-colors duration-200" href="{% url 'inventory:supplier_list' %}">
+        <span class="material-symbols-outlined">local_shipping</span>
+        <span>Поставщики</span>
+    </a>
+    <!-- Аналитика -->
+    <a class="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg mx-2 transition-colors duration-200" href="#">
+        <span class="material-symbols-outlined">analytics</span>
+        <span>Аналитика</span>
+    </a>
+    <!-- Маркетинг -->
+    <a class="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg mx-2 transition-colors duration-200" href="#">
+        <span class="material-symbols-outlined">campaign</span>
+        <span>Маркетинг</span>
+    </a>
+    <!-- Настройки -->
+    <a class="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white hover:bg-white/5 rounded-lg mx-2 transition-colors duration-200" href="#">
+        <span class="material-symbols-outlined">settings</span>
+        <span>Настройки</span>
+    </a>
+</nav>
+<div class="mt-auto px-4 pt-6 border-t border-white/10">
+    <div class="flex items-center gap-3 p-2 bg-white/5 rounded-xl">
+        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white font-bold">АГ</div>
+        <div class="flex flex-col">
+            <p class="text-sm font-bold text-white leading-tight">Арарат Г.</p>
+            <p class="text-[10px] text-white/50 uppercase tracking-tighter">Владелец</p>
+        </div>
+        <button class="ml-auto text-white/50 hover:text-white">
+            <span class="material-symbols-outlined text-xl">settings</span>
+        </button>
+    </div>
+</div>
+</aside>
+
+<!-- TopAppBar -->
+<header class="sticky top-0 right-0 w-full z-30 bg-surface/80 backdrop-blur-md flex justify-between items-center h-16 px-8 ml-64 font-['Manrope'] text-lg font-semibold text-[#004f54]">
+<div class="flex items-center gap-4">
+    <span class="text-on-background font-headline font-extrabold text-2xl tracking-tight">{% block page_title %}Дашборд{% endblock %}</span>
+</div>
+<div class="flex items-center gap-6">
+    <div class="relative group hidden lg:block">
+        <input class="bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all"
+               placeholder="Поиск заказов..."
+               type="text"
+               hx-get="{% url 'orders:order_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#main-content"
+               name="q">
+        <span class="material-symbols-outlined absolute left-3 top-2 text-outline text-sm">search</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <button class="hover:bg-black/5 rounded-full p-2 transition-all relative">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+        </button>
+    </div>
+</div>
+</header>
+
+<!-- Main Content -->
+<main id="main-content" class="ml-64 p-8 min-h-screen bg-surface">
+{% block content %}{% endblock %}
+</main>
+
+<!-- HTMX -->
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
